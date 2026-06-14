@@ -3,7 +3,29 @@ const fs     = require("fs-extra");
 const path   = require("path");
 const { createCanvas, loadImage } = require("canvas");
 const axios  = require("axios");
-const { getUA } = require("../../utils/apiHelper");
+// ── apiHelper safe loader ──────────────────────────────────────
+const _apiHelper = (() => {
+  try { return require("../../utils/apiHelper"); } catch {}
+  try { return require("../utils/apiHelper"); } catch {}
+  return global._apiHelper || global.apiHelper || {};
+})();
+const { safeGet = async(u,o)=>(await require("axios").get(u,{timeout:30000,...(o||{})})),
+        safePost = async(u,d,o)=>(await require("axios").post(u,d,{timeout:30000,...(o||{})})),
+        safeStream = async(u,f)=>{ const r=await require("axios")({method:"GET",url:u,responseType:"stream",timeout:30000}); if(f)r.data.path=f; return r.data; },
+        downloadToTmp = async(url,filename)=>{
+          const fs=require("fs-extra"),path=require("path"),axios=require("axios");
+          const dir=path.join(process.cwd(),"tmp"); await fs.ensureDir(dir);
+          const out=path.join(dir,filename||("dl_"+Date.now()+".mp4"));
+          const r=await axios({method:"GET",url,responseType:"stream",timeout:35000,headers:{"User-Agent":getUA()},maxRedirects:8});
+          await new Promise((res,rej)=>{const w=require("fs").createWriteStream(out);r.data.pipe(w);w.on("finish",res);w.on("error",rej);});
+          return out;
+        },
+        cleanTmp = (f,ms=10000)=>setTimeout(()=>require("fs-extra").remove(f).catch(()=>{}),ms),
+        getUA = ()=>(_apiHelper.getUA ? _apiHelper.getUA() : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"),
+        getBaseApi = ()=>(_apiHelper.getBaseApi ? _apiHelper.getBaseApi() : null),
+        jitter = (b=0)=>new Promise(r=>setTimeout(r,b+Math.random()*800))
+      } = _apiHelper;
+// ────────────────────────────────────────────────────────────
 
 const balanceFile = path.join(__dirname, "coinxbalance.json");
 if (!fs.existsSync(balanceFile)) fs.writeFileSync(balanceFile, JSON.stringify({}, null, 2));

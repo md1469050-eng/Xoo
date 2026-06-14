@@ -246,7 +246,7 @@ module.exports.run = async ({ api, event }) => {
       "https://i.imgur.com/wPu9FxH.jpeg",
       "https://i.imgur.com/vlPOfph.jpeg",
       "https://i.imgur.com/gA996Yj.jpeg",
-      "https://i.imgur.com/HzjaJYr.jpeg",];
+      "https://i.imgur.com/HzjaJYr.jpeg",
     ];
     const stream = await fastStream(imgLinks);
     await api.sendMessage({ body: "┄┉❈✡️⋆⃝চাঁদেড়~পাহাড়✿⃝🪬❈┉┄", attachment: stream }, threadID, messageID);
